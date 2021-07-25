@@ -1,0 +1,39 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool:
+  name: Default
+
+steps:
+- task: CmdLine@1
+  displayName: 'Run Tosca CI'
+  inputs:
+    filename: '"C:\Program Files (x86)\TRICENTIS\Tosca Testsuite\ToscaCommander\ToscaCI\Client\ToscaCIClient.exe"'
+    arguments: '-m distributed -c "C:\Tricentis\Automation\ToscaCI\Config1.xml" -t junit - r "C:\Tosca_Projects\ToscaCIResults\Results.xml"''     '
+
+- task: PublishTestResults@1
+  displayName: 'Publish Test Results C:\Tosca_Projects\ToscaCIResults'
+  inputs:
+    testResultsFiles: 'C:\Tosca_Projects\ToscaCIResults\Results.xml'
+
+- powershell: |
+   $url = 'https://pulse-7.qtestnet.com/webhook/ea99f7b9-7a0a-4dcd-b99d-1a11e7c4c8e3'
+   
+   $content = Get-Content "C:\Tosca_Projects\ToscaCIResults\Results.xml" -Raw
+   $bytes = [System.Text.Encoding]::ASCII.GetBytes($content)
+   $payload = [System.Convert]::ToBase64String($bytes)
+   
+   $body = @{
+    'projectId' = '87143'
+    'testcycle' = '2292302'
+    'result' = $payload
+   }
+   
+   [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+   Invoke-RestMethod -Body $body -Method 'Post' -Uri $url
+  displayName: 'Upload Results to qTest Pulse'
