@@ -22,15 +22,15 @@ steps:
     testResultsFiles: 'C:\Tosca_Projects\ToscaCIResults\Results.xml'
 
 - powershell: |
-   $url = '<Pulse_Webhook_Url>'
+   $url = 'https://pulse-7.qtestnet.com/webhook/9c935372-434e-44e7-ab8c-b0cae96ee116'
    
    $content = Get-Content "C:\Tosca_Projects\ToscaCIResults\Results.xml" -Raw
    $bytes = [System.Text.Encoding]::ASCII.GetBytes($content)
    $payload = [System.Convert]::ToBase64String($bytes)
    
    $body = @{
-    'projectId' = '<ProjectID>'
-    'testcycle' = '<TestCycleID>'
+    'projectId' = '85683'
+    'testcycle' = '2646455'
     'result' = $payload
    }
    
